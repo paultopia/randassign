@@ -24,9 +24,11 @@
           (conj out pick))
       (recur (inc idx) in* out)))))
 
-(defn walk-over-students-once [studs assgs]
-  (map (partial pick-unique addgs) studs))
-;; this isn't correct.  studs is a vector of maps, not a plain vector, I need to pluck the map out of each of them.  and also pass atom.  horrible.
+(defn walk-over-students-once [studvecs assgs]
+  (map (partial pick-unique assgs) studvecs))
+
+(defn walk-over-students-repeatedly [studs assgs num-assignments]
+  (loop [x num-assignments ]))
 
 (defn fill-seq [smaller bigger]
   (let [c (count bigger)]
