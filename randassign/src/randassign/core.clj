@@ -2,24 +2,54 @@
   (:gen-class)
   (:require
    [clojure.core.match :refer [match]]
+   [clojure.string :refer [blank?]]
    [clojure.data.csv :refer [read-csv]]
    [clojure.data.json :refer [read-str write-str]]))
+
+(defn vec-remove
+  "remove elem in coll"
+  [coll pos]
+  (vec (concat (subvec coll 0 pos) (subvec coll (inc pos)))))
+
+(defn pick-unique
+  "takes two collections, 'out' and 'in'. checks first item of in to see if out contains item. if not, adds to out and removes from in. otherwise goes to next item, etc.
+  will horribly break with an infinite loop if there are no valid items but I don't care.  returns both collections"
+  ([out in]
+   (pick-unique out in 0))
+  ([out in idx]
+   (let [pick (nth in idx)]
+    (if-not (.contains out pick)
+      {:out (conj out pick) :in (vec-remove in idx)}
+      (recur out in (inc idx))))))
+
+;; so then all I have to do is map over the list of students applying this function n times to each?! 
+
+(defn fill-seq [smaller bigger]
+  (let [c (count bigger)]
+    (vec (take c (cycle smaller)))))
+
+(defn assign-students [student assignments num-assignments]
+  (let [studs (shuffle (apply concat (repeat num-assignments students)))
+        assgs (fill-seq assignments studs)]))
 
 (defn assign [students assignments num-assignments]
   (str students " + " assignments))
 ;; stub/test
 
+(defn stripblank [v]
+  (vec (remove #(blank? %) v)))
+
 (defn process-json [filename student-identifier assignment-identifier num-assignments]
   (let [json (read-str (slurp filename))
-        students (json student-identifier)
-        assignments (json assignment-identifier)]
+        students (stripblank (json student-identifier))
+        assignments (stripblank (json assignment-identifier))]
     (assign students assignments num-assignments)))
 
 (defn pick-column
   "assumes column identifiers are in header and are unique. else will go boom"
   [identifier columns]
   (let [column (first(vec (filter #(= identifier (first %)) columns)))]
-   (rest column)))
+    (-> column rest stripblank)))
 
 (defn slurp-csv [filename]
   (apply mapv vector(read-csv (slurp filename))))

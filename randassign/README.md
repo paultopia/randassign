@@ -21,4 +21,6 @@ spits out (to stdout) a json of the form [{"student1": ["assignment1", "assignme
 
 If you want to save that json you should probably pipe it to a file.
 
+Assumes there are more students than assignments.  Otherwise will probably blow up. Also assumes that there aren't so few assignments relative to the number of assignments per student that a student has to be assigned the same thing twice.  If that assumption fails, it'll definitely blow up (with an infinite loop in a helper function, pick-unique). Please don't try using this in such situations.  My needs don't require solving this issue, so I haven't bothered. YANGI/YOLO.
+
 MIT License.  
