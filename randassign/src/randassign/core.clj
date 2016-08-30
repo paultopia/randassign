@@ -12,25 +12,29 @@
   (vec (concat (subvec coll 0 pos) (subvec coll (inc pos)))))
 
 (defn pick-unique
-  "takes two collections, 'out' and 'in'. checks first item of in to see if out contains item. if not, adds to out and removes from in. otherwise goes to next item, etc.
+  "takes two collections, 'out' and 'in'. checks first item of in to see if out contains item. if not, adds to out and removes from in. otherwise goes to next item, etc.  in is an atom, because I can't figure out a good way to do this without mutability.
   will horribly break with an infinite loop if there are no valid items but I don't care.  returns both collections"
-  ([out in]
-   (pick-unique out in 0))
-  ([out in idx]
-   (let [pick (nth in idx)]
+  ([in* out]
+   (pick-unique 0 in* out))
+  ([idx in* out]
+   (let [in @in*
+         pick (nth in idx)]
     (if-not (.contains out pick)
-      {:out (conj out pick) :in (vec-remove in idx)}
-      (recur out in (inc idx))))))
+      (do (reset! in* (vec-remove in idx))
+          (conj out pick))
+      (recur (inc idx) in* out)))))
 
-;; so then all I have to do is map over the list of students applying this function n times to each?! 
+(defn walk-over-students-once [studs assgs]
+  (map (partial pick-unique addgs) studs))
+;; this isn't correct.  studs is a vector of maps, not a plain vector, I need to pluck the map out of each of them.  and also pass atom.  horrible.
 
 (defn fill-seq [smaller bigger]
   (let [c (count bigger)]
     (vec (take c (cycle smaller)))))
 
-(defn assign-students [student assignments num-assignments]
-  (let [studs (shuffle (apply concat (repeat num-assignments students)))
-        assgs (fill-seq assignments studs)]))
+(defn assign-students [students assignments num-assignments]
+  (let [studs (apply merge (map #({% []}) students))
+        assgs (fill-seq (shuffle assignments) studs)]))
 
 (defn assign [students assignments num-assignments]
   (str students " + " assignments))
