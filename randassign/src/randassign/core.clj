@@ -18,10 +18,14 @@
 (defn pick-column
   "assumes column identifiers are in header and are unique. else will go boom"
   [identifier columns]
-  (rest (filter #(= identifier (first %)) columns)))
+  (let [column (first(vec (filter #(= identifier (first %)) columns)))]
+   (rest column)))
+
+(defn slurp-csv [filename]
+  (apply mapv vector(read-csv (slurp filename))))
 
 (defn process-csv [filename student-identifier assignment-identifier num-assignments]
-  (let [cols (apply mapv vector (read-csv (slurp filename)))
+  (let [cols (slurp-csv filename)
         students (pick-column student-identifier cols)
         assignments (pick-column assignment-identifier cols)]
     (assign students assignments num-assignments)))
